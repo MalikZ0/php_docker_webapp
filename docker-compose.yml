@@ -1,0 +1,30 @@
+version: '3' # version of docker-compose
+services:
+  www:
+    image: php:apache    # image of the container . we use php with apache for this web app
+    volumes:      # purpose of volume is to have two-way real-time communication between running container and local host machine 
+      - "./:/var/www/html"    # "./" - this is the path of the current directory and "/var/www/html" is the path of the container
+    ports:
+      - "80:80"    # first 80 is the port of the local machine and 80 is the port of the container
+      - "443:443"    # first 443 is the port of the local machine and 443 is the port of the container for future ssl traffic
+  db:
+    image: mysql:latest    # image of the container. we use mysql for this database
+    environment:
+      - MYSQL_DATABASE=php_docker       # database name
+      - MYSQL_USER=php_docker           # database user
+      - MYSQL_PASSWORD=password         # database password
+      - MYSQL_ALLOW_EMPTY_PASSWORD=1    # allow empty password
+    volumes:
+      - mysql_data:/var/lib/mysql                            # named volume for MySQL data if the database is empty 
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh  # this will run the init-db.sh script when the container is created 
+    entrypoint: /docker-entrypoint-initdb.d/init-db.sh
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin    # image of the container. we use phpmyadmin for this database management
+    ports:
+      - "8001:80"                     # first 8001 is the port of the local machine and 80 is the port of the container
+    environment:
+      - PMA_HOST=db                 # host of the database
+      - PMA_PORT=3306               # port of the database
+
+volumes:
+  mysql_data:
